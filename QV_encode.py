@@ -1,13 +1,13 @@
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 def closestVector(imgVec, encodingTable):
     closest = np.inf
     closestInd = -1
-    for encVec in encodingTable:
+    for i in range(0,len(encodingTable)):
         distanceSqr = 0
-        for i in range(0,len(imgVec)):
-            distanceSqr += (imgVec[i]+encVec[i])**2
+        for j in range(0,len(imgVec)):
+            distanceSqr += (imgVec[j]-encodingTable[i][j])**2
         distance = np.sqrt(distanceSqr)
         if distance < closest : 
             closest = distance
@@ -60,14 +60,32 @@ def QV_encode(Img_reduced, bitPerPixelGoal):
             #TODO protéger pour quand les tailles d'array et d'image de concorde pas
 
     #boucle LBG commence ici, pourra être changé
-    for i in range(0,10):
-        #4. encodage 
-        encImg = np.zeros(len(imgVec))
-        for i in range(0,len(encImg)):
-            encImg[i] = closestVector(imgVec[i], encTab)
+    #for i in range(0,10):
+    #4. encodage 
+    encImg = np.zeros(len(imgVec))
+    for i in range(0,len(encImg)):
+        encImg[i] = closestVector(imgVec[i], encTab)
 
+    #5. recalcul des centroïdes
+    for i in range(0,2**nBitPerInd):
+        indexes = np.where(encImg == i)[0]
+        if len(indexes) != 0:
+            moy = np.zeros(nPixPerVec)
+            for ind in indexes:
+                moy += imgVec[ind]
+            for j in range(0,nPixPerVec):
+                moy[j] = np.round(moy[j]/len(indexes))
+            encTab[i] = moy
 
-        #5. recalcul des centroïdes
+    #6. vérification de classe vide
+    if len(np.unique(encImg)) < len(encTab):
+        indTab = np.arange(0,2**nBitPerInd,1) #liste des valeurs de 0 à 2^nBitPerInd
+        unusedInd = np.setdiff1d(encImg,indTab) #liste des indexes non utilisé        
+        for i in unusedInd:
+            print(i)
+                
+
+        
 
 
     I_encoded = encImg
@@ -78,7 +96,7 @@ def QV_encode(Img_reduced, bitPerPixelGoal):
 #test
 if __name__ == "__main__":
     #import for visualisation
-    import matplotlib.pyplot as plt
+    
     #generate random data
     imgTest = np.random.randint(0,255,(256,256))
 
