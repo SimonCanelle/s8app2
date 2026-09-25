@@ -92,8 +92,9 @@ LIGNES = 256
 COLONNES = 256
 
 # Appelle la fonction d'interpolation
+print("Dimensions initiales :", I_source.shape)
 I_reduced = reduce(I_source, LIGNES, COLONNES)
-
+print("Dimensions finales :", I_reduced.shape)
 
 # ==========================================================================
 #
