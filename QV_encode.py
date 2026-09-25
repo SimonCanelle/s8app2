@@ -1,5 +1,19 @@
 import numpy as np
 
+
+def closestVector(imgVec, encodingTable):
+    closest = np.inf
+    closestInd = -1
+    for encVec in encodingTable:
+        distanceSqr = 0
+        for i in range(0,len(imgVec)):
+            distanceSqr += (imgVec[i]+encVec[i])**2
+        distance = np.sqrt(distanceSqr)
+        if distance < closest : 
+            closest = distance
+            closestInd = i
+    return closestInd
+
 def QV_encode(Img_reduced, bitPerPixelGoal):
     #1. calcul de la taille optimale du tableau pour le nombre de bit par pixel voulu
     imgH = len(Img_reduced)
@@ -43,8 +57,20 @@ def QV_encode(Img_reduced, bitPerPixelGoal):
         for k in range(0,imgL):
             imgVec[i] = Img_reduced[j:j+nPixPerVec, k]
             i+=1
+            #TODO protéger pour quand les tailles d'array et d'image de concorde pas
 
-    I_encoded = imgVec
+    #boucle LBG commence ici, pourra être changé
+    for i in range(0,10):
+        #4. encodage 
+        encImg = np.zeros(len(imgVec))
+        for i in range(0,len(encImg)):
+            encImg[i] = closestVector(imgVec[i], encTab)
+
+
+        #5. recalcul des centroïdes
+
+
+    I_encoded = encImg
     I_metadata = encTab
     return I_encoded, I_metadata, realBitPerPix
 
