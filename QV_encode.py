@@ -8,14 +8,9 @@ def distanceEuclidienne(a,b):
     return np.sqrt(c)
 
 def closestVector(imgVec, encodingTable):
-    closest = np.inf
-    closestInd = -1
-    for i in range(0,len(encodingTable)):
-        distance = distanceEuclidienne(imgVec,encodingTable[i])
-        if distance < closest : 
-            closest = distance
-            closestInd = i
-    return closestInd
+    diff = encodingTable - imgVec          
+    dist_sq = np.sum(diff**2, axis=1)
+    return np.argmin(dist_sq)
 
 def QV_encode(Img_reduced, bitPerPixelGoal, maxPixelPerVec=8, maxBitPerIndex=12):
     #1. calcul de la taille optimale du tableau pour le nombre de bit par pixel voulu

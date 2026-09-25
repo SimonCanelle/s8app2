@@ -9,14 +9,14 @@ def QV_decode(I_encoded, I_metadata):
     # la forme pour des vecteurs de grandeurs différentes
     heightCheck = imgH % nPixPerVec #vérification de size de tableau
     #préparation de l'array pour l'image
-    I_decoded = np.zeros(imgH+heightCheck,imgL) 
+    I_decoded = np.zeros((imgH+heightCheck,imgL)) 
     x = 0   #ligne 
     y = 0   #colonne
     #reconstruction de l'image
     for i in range(0,len(I_encoded)):
-        I_decoded[x:x+nPixPerVec,y] = enTab[i]
-        y+=1
-        x+=nPixPerVec        
+        I_decoded[x:x+nPixPerVec,y] = enTab[int(I_encoded[i])]
+        y=i%imgL
+        x=int(np.floor(i/imgL)*nPixPerVec)        
     #retire les ligne non voulue
     I_decoded = I_decoded[0:imgH,:]
     return I_decoded
