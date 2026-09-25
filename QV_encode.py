@@ -17,7 +17,7 @@ def closestVector(imgVec, encodingTable):
             closestInd = i
     return closestInd
 
-def QV_encode(Img_reduced, bitPerPixelGoal):
+def QV_encode(Img_reduced, bitPerPixelGoal, maxPixelPerVec=8, maxBitPerIndex=12):
     #1. calcul de la taille optimale du tableau pour le nombre de bit par pixel voulu
     imgH = len(Img_reduced)
     imgL = len(Img_reduced[0])
@@ -27,9 +27,9 @@ def QV_encode(Img_reduced, bitPerPixelGoal):
     nBitPerInd = 0
     realBitPerPix = 0
     closest = np.inf
-    for j in range(2,8):
+    for j in range(2,maxPixelPerVec):
         nVec = nPix / j        
-        for i in range(2,12):            
+        for i in range(2,maxBitPerIndex):            
             nIndex = (2**i)
             dataSize = nVec*i
             metadataSize = bitPerPix*nPixPerVec*nIndex + 64 #header: taille image source[16,16] + taille tableau encodage[16,16]
