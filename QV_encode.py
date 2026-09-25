@@ -1,14 +1,18 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+
+def distanceEuclidienne(a,b):
+    c = 0
+    for i in range(0,len(a)):
+        c +=(a[i]-b[i])**2
+    return np.sqrt(c)
+
 def closestVector(imgVec, encodingTable):
     closest = np.inf
     closestInd = -1
     for i in range(0,len(encodingTable)):
-        distanceSqr = 0
-        for j in range(0,len(imgVec)):
-            distanceSqr += (imgVec[j]-encodingTable[i][j])**2
-        distance = np.sqrt(distanceSqr)
+        distance = distanceEuclidienne(imgVec,encodingTable[i])
         if distance < closest : 
             closest = distance
             closestInd = i
@@ -26,7 +30,7 @@ def QV_encode(Img_reduced, bitPerPixelGoal):
     closest = np.inf
     for j in range(2,8):
         nVec = nPix / j        
-        for i in range(2,10):            
+        for i in range(2,12):            
             nIndex = (2**i)
             dataSize = nVec*i
             metadataSize = bitPerPix*nPixPerVec*nIndex + 64 #header: taille image source[16,16] + taille tableau encodage[16,16]
@@ -60,33 +64,51 @@ def QV_encode(Img_reduced, bitPerPixelGoal):
             #TODO protéger pour quand les tailles d'array et d'image de concorde pas
 
     #boucle LBG commence ici, pourra être changé
-    #for i in range(0,10):
-    #4. encodage 
-    encImg = np.zeros(len(imgVec))
-    for i in range(0,len(encImg)):
-        encImg[i] = closestVector(imgVec[i], encTab)
+    for lbg in range(0, 100):
+        #4. encodage 
+        encImg = np.zeros(len(imgVec))
+        for i in range(0,len(encImg)):
+            encImg[i] = closestVector(imgVec[i], encTab)
 
-    #5. recalcul des centroïdes
-    for i in range(0,2**nBitPerInd):
-        indexes = np.where(encImg == i)[0]
-        if len(indexes) != 0:
-            moy = np.zeros(nPixPerVec)
-            for ind in indexes:
-                moy += imgVec[ind]
-            for j in range(0,nPixPerVec):
-                moy[j] = np.round(moy[j]/len(indexes))
-            encTab[i] = moy
+        #5. recalcul des centroïdes
+        encTabOld = encTab.copy() #backup pour calcul de convergence
+        for i in range(0,2**nBitPerInd):
+            indexes = np.where(encImg == i)[0]
+            if len(indexes) != 0:
+                moy = np.zeros(nPixPerVec)
+                for ind in indexes:
+                    moy += imgVec[ind]
+                for j in range(0,nPixPerVec):
+                    moy[j] = np.round(moy[j]/len(indexes))
+                encTab[i] = moy
 
-    #6. vérification de classe vide
-    if len(np.unique(encImg)) < len(encTab):
-        indTab = np.arange(0,2**nBitPerInd,1) #liste des valeurs de 0 à 2^nBitPerInd
-        unusedInd = np.setdiff1d(encImg,indTab) #liste des indexes non utilisé        
-        for i in unusedInd:
-            print(i)
-                
+        #6. calcul de convergence
+        convTab = np.zeros(len(encTab))
+        for i in range(0,len(encTab)):
+            dist = distanceEuclidienne(encTabOld[i], encTab[i]) #calcul le mouvement
+            convTab[i] = np.linalg.norm(dist) #calcul la norme du vecteur de mouvement
+        conv = np.mean(convTab)
+        print(conv)
+        if conv < 0.5:
+            break #la convergence est terminé
 
-        
-
+        #7. vérification de classe vide
+        if len(np.unique(encImg)) < len(encTab):
+            indTab = np.arange(0,2**nBitPerInd,1) #liste des valeurs de 0 à 2^nBitPerInd
+            unusedInd = np.setdiff1d(encImg,indTab) #liste des indexes non utilisé        
+            #take most used class
+            #move vector -std and +std
+            #one goes in the most used class
+            #other goes in unused class
+            histo, bins = np.histogram(encImg, bins=2**nBitPerInd)
+            for i in unusedInd:
+                maxIndex = bins[np.argmax(histo)]
+                maxVec = np.where(encImg == maxIndex)[0]
+                maxStd = np.std(maxVec, axis=0)
+                maxMean = np.mean(maxVec, axis=0)
+                encTab[maxIndex] = maxMean - maxStd #modify max class
+                encTab[i] = maxMean + maxStd #modify unused class
+                histo[maxIndex] = 0 #remove most used histogram from list
 
     I_encoded = encImg
     I_metadata = encTab
