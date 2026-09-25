@@ -1,11 +1,14 @@
 import numpy as np
 
 def QV_encode(Img_reduced, bitPerPixelGoal):
-    #1. calcul des tailles 
-    nPix = int(len(Img_reduced) * len(Img_reduced[0]))
+    #1. calcul de la taille optimale du tableau pour le nombre de bit par pixel voulu
+    imgH = len(Img_reduced)
+    imgL = len(Img_reduced[0])
+    nPix = int(imgH * imgL)
     bitPerPix = 8 #image a été préprocess pour répondre à ça
     nPixPerVec = 0
     nBitPerInd = 0
+    realBitPerPix = 0
     closest = np.inf
     for j in range(2,8):
         nVec = nPix / j        
@@ -21,12 +24,8 @@ def QV_encode(Img_reduced, bitPerPixelGoal):
                 closest = distance
                 nBitPerInd = i
                 nPixPerVec = j
+                realBitPerPix = loopBitPerPix
 
-    nVec = nPix / nPixPerVec
-    dataSize = nVec*nBitPerInd
-    metadataSize = bitPerPix*nPixPerVec*(2**nBitPerInd)
-    realBitPerPix = (dataSize+metadataSize)/nPix
-    
     #2. initialisation du tableau d'encodage de manière linéaire
     nIndex = 2**nBitPerInd
     encTab = np.zeros((nIndex,nPixPerVec))
@@ -35,13 +34,18 @@ def QV_encode(Img_reduced, bitPerPixelGoal):
         n = int(np.round(line[i]))
         encTab[i] = np.full(nPixPerVec,n)
     
-    #3. encodage de l'image
-    #3.1 vectorisation de l'image
+    #3. vectorisation de l'image
+    # j'ai décider de séparer l'image en vecteurs colonne pour simplifier 
+    # la forme pour des vecteurs de grandeurs différentes
+    imgVec = np.zeros((int(nPix/nPixPerVec),nPixPerVec))
+    i = 0
+    for j in range(0,imgH,nPixPerVec):
+        for k in range(0,imgL):
+            imgVec[i] = Img_reduced[j:j+nPixPerVec, k]
+            i+=1
 
-
-
-    I_encoded = Img_reduced
-    I_metadata = 0
+    I_encoded = imgVec
+    I_metadata = encTab
     return I_encoded, I_metadata, realBitPerPix
 
 
