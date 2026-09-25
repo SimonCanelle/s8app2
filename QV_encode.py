@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 def distanceEuclidienne(a,b):
@@ -55,25 +54,28 @@ def QV_encode(Img_reduced, bitPerPixelGoal):
     #3. vectorisation de l'image
     # j'ai décider de séparer l'image en vecteurs colonne pour simplifier 
     # la forme pour des vecteurs de grandeurs différentes
+    heightCheck = imgH % nPixPerVec #vérification de size de tableau
+    if (heightCheck!=0):
+        for i in range(0,heightCheck):
+            Img_reduced.append(Img_reduced[-1])#copie la dernière ligne 
     imgVec = np.zeros((int(nPix/nPixPerVec),nPixPerVec))
     i = 0
     for j in range(0,imgH,nPixPerVec):
         for k in range(0,imgL):
             imgVec[i] = Img_reduced[j:j+nPixPerVec, k]
-            i+=1
-            #TODO protéger pour quand les tailles d'array et d'image de concorde pas
+            i+=1            
 
     #boucle LBG commence ici, pourra être changé
     for lbg in range(0, 100):
         #4. encodage 
-        encImg = np.zeros(len(imgVec))
-        for i in range(0,len(encImg)):
-            encImg[i] = closestVector(imgVec[i], encTab)
+        I_encoded = np.zeros(len(imgVec))
+        for i in range(0,len(I_encoded)):
+            I_encoded[i] = closestVector(imgVec[i], encTab)
 
         #5. recalcul des centroïdes
         encTabOld = encTab.copy() #backup pour calcul de convergence
         for i in range(0,2**nBitPerInd):
-            indexes = np.where(encImg == i)[0]
+            indexes = np.where(I_encoded == i)[0]
             if len(indexes) != 0:
                 moy = np.zeros(nPixPerVec)
                 for ind in indexes:
@@ -90,28 +92,30 @@ def QV_encode(Img_reduced, bitPerPixelGoal):
         conv = np.mean(convTab)
         print(conv)
         if conv < 0.5:
+            encTab = encTabOld #on garde l'ancienne table puisque les nouveau centroide n'on pas assez bouger et l'encodage présent est fait avec l'ancienne table
             break #la convergence est terminé
 
         #7. vérification de classe vide
-        if len(np.unique(encImg)) < len(encTab):
+        if len(np.unique(I_encoded)) < len(encTab):
             indTab = np.arange(0,2**nBitPerInd,1) #liste des valeurs de 0 à 2^nBitPerInd
-            unusedInd = np.setdiff1d(encImg,indTab) #liste des indexes non utilisé        
+            unusedInd = np.setdiff1d(I_encoded,indTab) #liste des indexes non utilisé        
             #take most used class
             #move vector -std and +std
             #one goes in the most used class
             #other goes in unused class
-            histo, bins = np.histogram(encImg, bins=2**nBitPerInd)
+            histo, bins = np.histogram(I_encoded, bins=2**nBitPerInd)
             for i in unusedInd:
                 maxIndex = bins[np.argmax(histo)]
-                maxVec = np.where(encImg == maxIndex)[0]
+                maxVec = np.where(I_encoded == maxIndex)[0]
                 maxStd = np.std(maxVec, axis=0)
                 maxMean = np.mean(maxVec, axis=0)
                 encTab[maxIndex] = maxMean - maxStd #modify max class
                 encTab[i] = maxMean + maxStd #modify unused class
                 histo[maxIndex] = 0 #remove most used histogram from list
 
-    I_encoded = encImg
-    I_metadata = encTab
+    I_metadata = dict()
+    I_metadata["encodingTable"] = encTab
+    I_metadata["image_size"] = [imgH, imgL]
     return I_encoded, I_metadata, realBitPerPix
 
 
@@ -124,5 +128,4 @@ if __name__ == "__main__":
 
     I_encoded, I_metadata, realEncode = QV_encode(imgTest, 5)
 
-    plt.imshow(imgTest,"Greys")
-    plt.show()
+    
