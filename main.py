@@ -46,8 +46,8 @@ Choix = 1
 
 # Chargement de l'image source
 I_source = np.asarray(
-    Image.open("ressources/cman.tif"),
-    # Image.open("ressources/crest.bmp"),
+    # Image.open("ressources/cman.tif"),
+    Image.open("ressources/crest.bmp"),
     # Image.open("ressources/irm.tif"),
     # Image.open("ressources/lenna.bmp"),
     # Image.open("ressources/mandrill.tif"),
@@ -55,8 +55,8 @@ I_source = np.asarray(
 )
 
 # Print pour valider que l'image est bien en format 0 à 255 et non 0 à 1
-print(f"min(I_source) = {I_source.min():f}")
-print(f"max(I_source) = {I_source.max():f}")
+# print(f"min(I_source) = {I_source.min():f}")
+# print(f"max(I_source) = {I_source.max():f}")
 
 # Affichage de l'image source
 plt.figure(1)
@@ -78,7 +78,7 @@ start_time = time.perf_counter()
 #
 # ==========================================================================
 
-# I_source = convert(I_source)
+I_source = convert(I_source)
 
 
 # ==========================================================================
