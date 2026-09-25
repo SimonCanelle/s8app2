@@ -86,7 +86,7 @@ def QV_encode(Img_reduced, bitPerPixelGoal, maxPixelPerVec=8, maxBitPerIndex=12)
             convTab[i] = np.linalg.norm(dist) #calcul la norme du vecteur de mouvement
         conv = np.mean(convTab)
         print(conv)
-        if conv < 0.5:
+        if conv < 0.1:#set arbitrairement
             encTab = encTabOld #on garde l'ancienne table puisque les nouveau centroide n'on pas assez bouger et l'encodage présent est fait avec l'ancienne table
             break #la convergence est terminé
 
