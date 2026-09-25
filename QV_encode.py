@@ -119,13 +119,4 @@ def QV_encode(Img_reduced, bitPerPixelGoal):
     return I_encoded, I_metadata, realBitPerPix
 
 
-#test
-if __name__ == "__main__":
-    #import for visualisation
-    
-    #generate random data
-    imgTest = np.random.randint(0,255,(256,256))
-
-    I_encoded, I_metadata, realEncode = QV_encode(imgTest, 5)
-
     
