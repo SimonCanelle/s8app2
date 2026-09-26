@@ -42,7 +42,7 @@ plt.close("all")
 # 5 = Quantification par troncature de blocs (BTC)
 # 6 = Quantification adaptative (QA)
 
-Choix = 1
+Choix = 2
 
 # Chargement de l'image source
 I_source = np.asarray(
@@ -98,6 +98,21 @@ print("Dimensions finales :", I_reduced.shape)
 
 # ==========================================================================
 #
+# AFFICHAGE DE L'IMAGE DÉCODÉE
+#
+# ==========================================================================
+
+plt.figure(2)
+
+if I_reduced.ndim == 2:
+    plt.imshow(I_reduced / 255.0, cmap="gray", vmin=0, vmax=1)
+else:
+    plt.imshow(I_reduced / 255.0)
+
+plt.axis("off")
+
+# ==========================================================================
+#
 # CODAGE
 #
 # ==========================================================================
@@ -111,7 +126,6 @@ if Choix == 1:
 elif Choix == 2:
     # Paramètres d'entrée
     ArgumentX = 0
-    # À implémenter
     I_encoded, I_metadata = DPCM_encode(I_reduced, ArgumentX)
 
 elif Choix == 3:
@@ -139,14 +153,23 @@ else:
 # Data représente les données qui seront transmises.
 #
 # La clé correspond au nombre de bits de la cellule :
-#
-# Data[8] -> I_encoded
-# Data[1] -> I_metadata
 
-Data = {
-    8: I_encoded,
-    1: I_metadata
-}
+Data = [None] * 8
+
+if Choix == 1:
+    Data[7] = I_encoded      # équivalent de Data{8}
+    Data[0] = I_metadata     # équivalent de Data{1}
+
+elif Choix == 2:
+    # Python indices:
+    # Data[3] -> I_encoded  (256 * 256 * 4 bits)
+    # Data[7] -> I_metadata (2 * 8 bits)
+    Data[3] = I_encoded      # équivalent de Data{4}
+    Data[7] = I_metadata     # équivalent de Data{8}
+
+else:
+    Data[7] = I_encoded      # équivalent de Data{8}
+    Data[0] = I_metadata     # équivalent de Data{1}
 
 # Appel de la fonction de transmission
 Budget = transmit(Data)
@@ -167,8 +190,8 @@ if Budget < 0:
 
 # Dans cette version, Data est conservé directement après la transmission.
 # On récupère donc les données reçues à partir de celui-ci.
-I_encoded_Rx = Data[8]
-I_metadata_Rx = Data[1]
+I_encoded_Rx = Data[3]
+I_metadata_Rx = Data[7]
 
 
 # ==========================================================================
@@ -190,7 +213,6 @@ if Choix == 1:
 elif Choix == 2:
     # Paramètres d'entrée
     ArgumentY = 0
-    # À implémenter
     I_decoded = DPCM_decode(
         I_encoded_Rx,
         I_metadata_Rx,
@@ -216,7 +238,7 @@ elif Choix == 6:
 #
 # ==========================================================================
 
-plt.figure(2)
+plt.figure(3)
 
 if I_decoded.ndim == 2:
     plt.imshow(I_decoded / 255.0, cmap="gray", vmin=0, vmax=1)
@@ -238,6 +260,8 @@ elapsed_time = time.perf_counter() - start_time
 # Si aucune erreur n'a été détectée
 if Budget > 0:
     # Calcul du PSNR
+    print("I_decoded min =", np.min(I_decoded))
+    print("I_decoded max =", np.max(I_decoded))
     PSNR = computePSNR(I_reduced, I_decoded)
     # Calcul du débit
     Rate = Budget / I_decoded.size
