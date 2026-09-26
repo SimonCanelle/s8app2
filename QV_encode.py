@@ -31,8 +31,8 @@ def QV_encode(Img_reduced, bitPerPixelGoal, maxPixelPerVec=8, maxBitPerIndex=12)
             # la logique du diviseur est en combien de groupe on veux séparer nos vecteur 
             # en assumant que chaque vecteur est différent
             loopBitPerPix = (dataSize+metadataSize)/nPix
-            distance = np.abs(bitPerPixelGoal - loopBitPerPix)
-            if (distance < closest):
+            distance = bitPerPixelGoal - loopBitPerPix
+            if (distance < closest and distance >=0):
                 closest = distance
                 nBitPerInd = i
                 nPixPerVec = j
