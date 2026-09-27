@@ -15,8 +15,13 @@ bitPerPixelGoal = 5
 nPix = int(imgH * imgL)
 bitPerPix = 8 #image a été préprocess pour répondre à ça
 params_pairs = None#PixPerVec, BitPerInd, loopBitPerPix
+nVec = None
 for PixPerVec in range(2,12):
-    imgHPadded = imgH + (imgH % PixPerVec)
+    heightCheck = imgH % PixPerVec #vérification de size de tableau
+    if (heightCheck!=0):
+        imgHPadded = imgH + PixPerVec-(imgH % PixPerVec)
+    else:
+        imgHPadded = imgH
     nPixPadded = imgHPadded * imgL
     nVec = nPixPadded / PixPerVec
     for BitPerInd in range(2,12):
@@ -25,7 +30,7 @@ for PixPerVec in range(2,12):
         # la logique du diviseur est en combien de groupe on veux séparer nos vecteur 
         # en assumant que chaque vecteur est différent            
         loopBitPerPix = (dataSize+metadataSize)/nPix
-        if (loopBitPerPix <= 5 and loopBitPerPix >= 2):# pas moins que 2 car c'Est sur que la uqalité va être ouach
+        if (loopBitPerPix <= 5):# pas moins que 2 car c'Est sur que la uqalité va être ouach
             print(f"Ok Pairs : P/V {PixPerVec} B/I {BitPerInd}")
             print(f"calculated data bit size = {dataSize+metadataSize}")
             print(f"pre calculated rate = {loopBitPerPix}")
@@ -38,9 +43,9 @@ for PixPerVec in range(2,12):
 
 I_source = np.asarray(
     # Image.open("ressources/cman.tif"),
-    #Image.open("ressources/crest.bmp"),
+    Image.open("ressources/crest.bmp"),
     # Image.open("ressources/irm.tif"),
-    Image.open("ressources/lenna.bmp"),
+    #Image.open("ressources/lenna.bmp"),
     # Image.open("ressources/mandrill.tif"),
     dtype=np.float64
 )
@@ -54,6 +59,7 @@ I_reduced = reduce(I_source, LIGNES, COLONNES)
 bestPSNR = 0
 bestParam = []
 for param in params_pairs:
+    print("******************************")
     print(f"Testing {param}")
     I_metadata = dict()
     I_metadata["src_image_size"] = [I_source.shape[0],I_source.shape[1]]

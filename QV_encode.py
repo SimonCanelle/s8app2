@@ -2,9 +2,8 @@ import numpy as np
 
 
 def distanceEuclidienne(a,b):
-    c = 0
-    for i in range(0,len(a)):
-        c +=(a[i]-b[i])**2
+    diff = a - b
+    c = np.sum(diff**2)
     return np.sqrt(c)
 
 def closestVector(imgVec, encodingTable):
@@ -21,9 +20,13 @@ def QV_encode(Img_reduced, I_metadata, pixelPerVec:int=10, bitPerIndex:int=10, c
     nIndex = int(2**bitPerIndex)
     encTab = np.zeros((nIndex,pixelPerVec))
     line = np.linspace(0,255,nIndex)
+    counter = 0 #aide a pas avoir des vecteur pareil au départ
     for i in range(0,nIndex):
         n = int(np.round(line[i]))
         encTab[i] = np.full(pixelPerVec,n)
+        for j in range(1,pixelPerVec):
+            encTab[i][j] = (n + counter)%256
+            counter = (counter + 1) % 16
     
     #3. vectorisation de l'image
     # j'ai décider de séparer l'image en vecteurs colonne pour simplifier 
