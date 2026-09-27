@@ -50,9 +50,9 @@ I_metadata = dict()
 # Chargement de l'image source
 I_source = np.asarray(
     # Image.open("ressources/cman.tif"),
-    #Image.open("ressources/crest.bmp"),
+    Image.open("ressources/crest.bmp"),
     # Image.open("ressources/irm.tif"),
-    Image.open("ressources/lenna.bmp"),
+    #Image.open("ressources/lenna.bmp"),
     # Image.open("ressources/mandrill.tif"),
     dtype=np.float64
 )
@@ -125,7 +125,7 @@ plt.axis("off")
 
 if Choix == 1:
     # Appelle la fonction de codage
-    I_encoded, I_metadata = QV_encode(I_reduced, I_metadata=I_metadata, pixelPerVec=6, bitPerIndex=7)
+    I_encoded, I_metadata = QV_encode(I_reduced, I_metadata=I_metadata, pixelPerVec=2, bitPerIndex=9)
 
 elif Choix == 2:
     # Paramètres d'entrée
@@ -283,7 +283,6 @@ plt.axis("off")
 # CALCUL DE LA PERFORMANCE
 #
 # ==========================================================================
-
 # Fin du chronomètre
 elapsed_time = time.perf_counter() - start_time
 
@@ -303,4 +302,10 @@ if Budget > 0:
     print("*****************************")
 
 # Affiche les figures
+plt.figure(4)
+plt.imshow((I_decoded-I_reduced) / 255.0, cmap="gray", vmin=0, vmax=1)
+
+plt.figure(5)
+plt.hist(I_encoded,bins=I_metadata["encodingTable"].shape[0])
+
 plt.show()
