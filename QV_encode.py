@@ -16,10 +16,10 @@ def QV_encode(Img_reduced, I_metadata, pixelPerVec:int=10, bitPerIndex:int=10, c
     imgH = len(Img_reduced)
     imgL = len(Img_reduced[0])    
 
-    #2. initialisation du tableau d'encodage de manière linéaire
+    #2. initialisation du tableau d'encodage
     nIndex = int(2**bitPerIndex)
     encTab = np.zeros((nIndex,pixelPerVec))
-    line = np.linspace(0,255,nIndex)
+    line = np.linspace(Img_reduced.min(),Img_reduced.max(),nIndex) #de min a max trouvé dans l'image
     counter = 0 #aide a pas avoir des vecteur pareil au départ
     for i in range(0,nIndex):
         n = int(np.round(line[i]))
@@ -55,11 +55,7 @@ def QV_encode(Img_reduced, I_metadata, pixelPerVec:int=10, bitPerIndex:int=10, c
         for i in range(0,2**bitPerIndex):
             indexes = np.where(I_encoded == i)[0]
             if len(indexes) != 0:
-                moy = np.zeros(pixelPerVec)
-                for ind in indexes:
-                    moy += imgVec[ind]
-                for j in range(0,pixelPerVec):
-                    moy[j] = np.round(moy[j]/len(indexes))
+                moy = np.round(np.mean(imgVec[indexes], axis=0))
                 encTab[i] = moy
 
         #6. calcul de convergence

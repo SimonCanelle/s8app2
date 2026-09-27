@@ -125,7 +125,7 @@ plt.axis("off")
 
 if Choix == 1:
     # Appelle la fonction de codage
-    I_encoded, I_metadata = QV_encode(I_reduced, I_metadata=I_metadata)
+    I_encoded, I_metadata = QV_encode(I_reduced, I_metadata=I_metadata, pixelPerVec=6, bitPerIndex=7)
 
 elif Choix == 2:
     # Paramètres d'entrée
