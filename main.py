@@ -8,6 +8,8 @@ from convert import convert
 from reduce import reduce
 from QV_encode import QV_encode
 from QV_decode import QV_decode
+from BTC_encode import BTC_encode
+#from BTC_decode import BTC_decode
 from DPCM_encode import DPCM_encode
 from DPCM_decode import DPCM_decode
 from transmit import transmit
@@ -42,7 +44,7 @@ plt.close("all")
 # 5 = Quantification par troncature de blocs (BTC)
 # 6 = Quantification adaptative (QA)
 
-Choix = 1
+Choix = 5
 
 #préparation du distionnaire de métadonnées
 I_metadata = dict()
@@ -139,7 +141,7 @@ elif Choix == 4:
     raise NotImplementedError("Le codeur DCT n'est pas encore implémenté.")
 
 elif Choix == 5:
-    raise NotImplementedError("Le codeur BTC n'est pas encore implémenté.")
+    I_encoded, I_metadata = BTC_encode(I_reduced, I_metadata)
 
 elif Choix == 6:
     raise NotImplementedError("Le codeur QA n'est pas encore implémenté.")
@@ -291,13 +293,13 @@ if Budget > 0:
     # Calcul du PSNR
     print("I_decoded min =", np.min(I_decoded))
     print("I_decoded max =", np.max(I_decoded))
-    PSNR = computePSNR(I_reduced, I_decoded)
+    psnr = computePSNR(I_reduced, I_decoded)
     # Calcul du débit
     Rate = Budget / I_decoded.size
     # Affichage des performances
     print("********* Résultats *********")
     print(f"Temps écoulé: {elapsed_time:.2f} s")
-    print(f"PSNR: {PSNR:.2f} dB")
+    print(f"PSNR: {psnr:.2f} dB")
     print(f"Rate: {Rate:.2f} bits/pixel")
     print("*****************************")
 
