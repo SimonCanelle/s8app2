@@ -180,11 +180,11 @@ elif Choix == 2:
     # Python indices:
     # Data[3] -> I_encoded  (256 * 256 * 4 bits)
     # Data[7] -> I_metadata (2 * 8 bits)
-    Data[4] = I_encoded      # équivalent de Data{4}
-    Data[8] = I_metadata     # équivalent de Data{8}
+    Data[3] = I_encoded      # équivalent de Data{4}
+    Data[7] = I_metadata     # équivalent de Data{8}
 
 else:
-    Data[8] = I_encoded      # équivalent de Data{8}
+    Data[7] = I_encoded      # équivalent de Data{8}
     Data[0] = I_metadata     # équivalent de Data{1}
 
 # Appel de la fonction de transmission
@@ -214,8 +214,8 @@ if Budget < 0:
 
 if Choix == 2:
     # Paramètres d'entrée
-    I_metadata_Rx = Data[8]
-    I_encoded_Rx = Data[4]
+    I_metadata_Rx = Data[7]
+    I_encoded_Rx = Data[3]
 
 
 elif Choix == 3:
