@@ -12,56 +12,32 @@ def closestVector(imgVec, encodingTable):
     dist_sq = np.sum(diff**2, axis=1)
     return np.argmin(dist_sq)
 
-def QV_encode(Img_reduced, I_metadata, bitPerPixelGoal=5, maxPixelPerVec=8, maxBitPerIndex=12, conversionGoal=0.1):
-    #1. calcul de la taille optimale du tableau pour le nombre de bit par pixel voulu
+def QV_encode(Img_reduced, I_metadata, pixelPerVec:int=10, bitPerIndex:int=10, conversionGoal=0.1):
+    #1. vérification de la taille de l'image
     imgH = len(Img_reduced)
-    imgL = len(Img_reduced[0])
-    nPix = int(imgH * imgL)
-    bitPerPix = 8 #image a été préprocess pour répondre à ça
-    nPixPerVec = 0
-    nBitPerInd = 0
-    realBitPerPix = 0
-    closest = np.inf
-    for j in range(2,maxPixelPerVec):
-        imgHPadded = imgH + (imgH % j)
-        nPixPadded = imgHPadded * imgL
-        nVec = nPixPadded / j
-        for i in range(2,maxBitPerIndex):            
-            nIndex = (2**i)
-            dataSize = nVec*i
-            metadataSize = bitPerPix*nPixPerVec*nIndex + 96 #header: taille image source[16,16] + taille tableau encodage[16,16] + taille image encodé [16,16]
-            # la logique du diviseur est en combien de groupe on veux séparer nos vecteur 
-            # en assumant que chaque vecteur est différent            
-            loopBitPerPix = (dataSize+metadataSize)/nPix
-            distance = bitPerPixelGoal - loopBitPerPix
-            if (distance < closest and distance >= 0):
-                #print("calculated data bit size = "+str((dataSize+metadataSize)))
-                #print("pre calculated rate = "+str((loopBitPerPix)))
-                closest = distance
-                nBitPerInd = i
-                nPixPerVec = j
-                realBitPerPix = loopBitPerPix
+    imgL = len(Img_reduced[0])    
 
     #2. initialisation du tableau d'encodage de manière linéaire
-    nIndex = 2**nBitPerInd
-    encTab = np.zeros((nIndex,nPixPerVec))
+    nIndex = int(2**bitPerIndex)
+    encTab = np.zeros((nIndex,pixelPerVec))
     line = np.linspace(0,255,nIndex)
     for i in range(0,nIndex):
         n = int(np.round(line[i]))
-        encTab[i] = np.full(nPixPerVec,n)
+        encTab[i] = np.full(pixelPerVec,n)
     
     #3. vectorisation de l'image
     # j'ai décider de séparer l'image en vecteurs colonne pour simplifier 
     # la forme pour des vecteurs de grandeurs différentes
-    heightCheck = imgH % nPixPerVec #vérification de size de tableau
+    heightCheck = imgH % pixelPerVec #vérification de size de tableau
     if (heightCheck!=0):
-        for i in range(0,heightCheck):
+        for i in range(0,(pixelPerVec-heightCheck)):
             Img_reduced = np.vstack([Img_reduced, Img_reduced[-1:]])#copie la dernière ligne 
-    imgVec = np.zeros((int(nPix/nPixPerVec),nPixPerVec))
+    
+    imgVec = np.zeros((int(Img_reduced.size/pixelPerVec),pixelPerVec))
     i = 0
-    for j in range(0,imgH,nPixPerVec):
+    for j in range(0,imgH,pixelPerVec):
         for k in range(0,imgL):
-            imgVec[i] = Img_reduced[j:j+nPixPerVec, k]
+            imgVec[i] = Img_reduced[j:j+pixelPerVec, k]
             i+=1            
 
     #boucle LBG commence ici, pourra être changé
@@ -73,13 +49,13 @@ def QV_encode(Img_reduced, I_metadata, bitPerPixelGoal=5, maxPixelPerVec=8, maxB
 
         #5. recalcul des centroïdes
         encTabOld = encTab.copy() #backup pour calcul de convergence
-        for i in range(0,2**nBitPerInd):
+        for i in range(0,2**bitPerIndex):
             indexes = np.where(I_encoded == i)[0]
             if len(indexes) != 0:
-                moy = np.zeros(nPixPerVec)
+                moy = np.zeros(pixelPerVec)
                 for ind in indexes:
                     moy += imgVec[ind]
-                for j in range(0,nPixPerVec):
+                for j in range(0,pixelPerVec):
                     moy[j] = np.round(moy[j]/len(indexes))
                 encTab[i] = moy
 
@@ -95,13 +71,13 @@ def QV_encode(Img_reduced, I_metadata, bitPerPixelGoal=5, maxPixelPerVec=8, maxB
 
         #7. vérification de classe vide
         if len(np.unique(I_encoded)) < len(encTab):
-            indTab = np.arange(0,2**nBitPerInd,1) #liste des valeurs de 0 à 2^nBitPerInd
+            indTab = np.arange(0,2**bitPerIndex,1) #liste des valeurs de 0 à 2^nBitPerInd
             unusedInd = np.setdiff1d(I_encoded,indTab) #liste des indexes non utilisé        
             #take most used class
             #move vector -std and +std
             #one goes in the most used class
             #other goes in unused class
-            histo, bins = np.histogram(I_encoded, bins=2**nBitPerInd)
+            histo, bins = np.histogram(I_encoded, bins=2**bitPerIndex)
             for i in unusedInd:
                 maxIndex = bins[np.argmax(histo)]
                 maxVec = np.where(I_encoded == maxIndex)[0]
@@ -113,7 +89,6 @@ def QV_encode(Img_reduced, I_metadata, bitPerPixelGoal=5, maxPixelPerVec=8, maxB
 
     I_metadata["encodingTable"] = encTab
 
-    return I_encoded, I_metadata, realBitPerPix
-
+    return I_encoded, I_metadata
 
     

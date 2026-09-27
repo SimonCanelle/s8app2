@@ -50,9 +50,9 @@ I_metadata = dict()
 # Chargement de l'image source
 I_source = np.asarray(
     # Image.open("ressources/cman.tif"),
-    Image.open("ressources/crest.bmp"),
+    #Image.open("ressources/crest.bmp"),
     # Image.open("ressources/irm.tif"),
-    # Image.open("ressources/lenna.bmp"),
+    Image.open("ressources/lenna.bmp"),
     # Image.open("ressources/mandrill.tif"),
     dtype=np.float64
 )
@@ -125,7 +125,7 @@ plt.axis("off")
 
 if Choix == 1:
     # Appelle la fonction de codage
-    I_encoded, I_metadata, bitPerPixel = QV_encode(I_reduced, bitPerPixelGoal=5, I_metadata=I_metadata)
+    I_encoded, I_metadata = QV_encode(I_reduced, I_metadata=I_metadata)
 
 elif Choix == 2:
     # Paramètres d'entrée

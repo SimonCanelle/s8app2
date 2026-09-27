@@ -26,7 +26,7 @@ def QV_decode(Data):
     # la forme pour des vecteurs de grandeurs différentes
     heightCheck = imgH % nPixPerVec #vérification de size de tableau
     #préparation de l'array pour l'image
-    I_decoded = np.zeros((imgH+heightCheck,imgL)) 
+    I_decoded = np.zeros((imgH+(nPixPerVec-heightCheck),imgL)) 
     x = 0   #ligne 
     y = 0   #colonne
     #reconstruction de l'image
