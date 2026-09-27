@@ -8,7 +8,7 @@ import cv2
 #imgTest = np.random.randint(0,255,(256,256))#à changer pour une image source
 imgSource = cv2.imread('ressources/lenna.bmp', cv2.IMREAD_GRAYSCALE)  # (H, W)
 imgTest = cv2.resize(imgSource, (256, 256))
-I_encoded, I_metadata, realBitPerPix = QV_encode(imgTest, 5, 8, 12)
+I_encoded, I_metadata, realBitPerPix = QV_encode(imgTest)
 I_decoded = QV_decode(I_encoded, I_metadata)
 print("rate = "+ str(realBitPerPix)+"bit/pixel")
 print("psnr = "+str(computePSNR(imgTest,I_decoded))+" dB")

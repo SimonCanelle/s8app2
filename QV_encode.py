@@ -12,7 +12,7 @@ def closestVector(imgVec, encodingTable):
     dist_sq = np.sum(diff**2, axis=1)
     return np.argmin(dist_sq)
 
-def QV_encode(Img_reduced, bitPerPixelGoal, maxPixelPerVec=8, maxBitPerIndex=12):
+def QV_encode(Img_reduced, I_metadata, bitPerPixelGoal=5, maxPixelPerVec=8, maxBitPerIndex=12, conversionGoal=0.1):
     #1. calcul de la taille optimale du tableau pour le nombre de bit par pixel voulu
     imgH = len(Img_reduced)
     imgL = len(Img_reduced[0])
@@ -23,16 +23,20 @@ def QV_encode(Img_reduced, bitPerPixelGoal, maxPixelPerVec=8, maxBitPerIndex=12)
     realBitPerPix = 0
     closest = np.inf
     for j in range(2,maxPixelPerVec):
-        nVec = nPix / j        
+        imgHPadded = imgH + (imgH % j)
+        nPixPadded = imgHPadded * imgL
+        nVec = nPixPadded / j
         for i in range(2,maxBitPerIndex):            
             nIndex = (2**i)
             dataSize = nVec*i
-            metadataSize = bitPerPix*nPixPerVec*nIndex + 64 #header: taille image source[16,16] + taille tableau encodage[16,16]
+            metadataSize = bitPerPix*nPixPerVec*nIndex + 96 #header: taille image source[16,16] + taille tableau encodage[16,16] + taille image encodé [16,16]
             # la logique du diviseur est en combien de groupe on veux séparer nos vecteur 
-            # en assumant que chaque vecteur est différent
+            # en assumant que chaque vecteur est différent            
             loopBitPerPix = (dataSize+metadataSize)/nPix
             distance = bitPerPixelGoal - loopBitPerPix
-            if (distance < closest and distance >=0):
+            if (distance < closest and distance >= 0):
+                #print("calculated data bit size = "+str((dataSize+metadataSize)))
+                #print("pre calculated rate = "+str((loopBitPerPix)))
                 closest = distance
                 nBitPerInd = i
                 nPixPerVec = j
@@ -52,7 +56,7 @@ def QV_encode(Img_reduced, bitPerPixelGoal, maxPixelPerVec=8, maxBitPerIndex=12)
     heightCheck = imgH % nPixPerVec #vérification de size de tableau
     if (heightCheck!=0):
         for i in range(0,heightCheck):
-            Img_reduced.append(Img_reduced[-1])#copie la dernière ligne 
+            Img_reduced = np.vstack([Img_reduced, Img_reduced[-1:]])#copie la dernière ligne 
     imgVec = np.zeros((int(nPix/nPixPerVec),nPixPerVec))
     i = 0
     for j in range(0,imgH,nPixPerVec):
@@ -85,8 +89,7 @@ def QV_encode(Img_reduced, bitPerPixelGoal, maxPixelPerVec=8, maxBitPerIndex=12)
             dist = distanceEuclidienne(encTabOld[i], encTab[i]) #calcul le mouvement
             convTab[i] = np.linalg.norm(dist) #calcul la norme du vecteur de mouvement
         conv = np.mean(convTab)
-        print(conv)
-        if conv < 0.1:#set arbitrairement
+        if conv < conversionGoal:#set arbitrairement
             encTab = encTabOld #on garde l'ancienne table puisque les nouveau centroide n'on pas assez bouger et l'encodage présent est fait avec l'ancienne table
             break #la convergence est terminé
 
@@ -108,9 +111,8 @@ def QV_encode(Img_reduced, bitPerPixelGoal, maxPixelPerVec=8, maxBitPerIndex=12)
                 encTab[i] = maxMean + maxStd #modify unused class
                 histo[maxIndex] = 0 #remove most used histogram from list
 
-    I_metadata = dict()
     I_metadata["encodingTable"] = encTab
-    I_metadata["image_size"] = [imgH, imgL]
+
     return I_encoded, I_metadata, realBitPerPix
 
 

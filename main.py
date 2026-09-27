@@ -42,7 +42,10 @@ plt.close("all")
 # 5 = Quantification par troncature de blocs (BTC)
 # 6 = Quantification adaptative (QA)
 
-Choix = 2
+Choix = 1
+
+#préparation du distionnaire de métadonnées
+I_metadata = dict()
 
 # Chargement de l'image source
 I_source = np.asarray(
@@ -54,6 +57,7 @@ I_source = np.asarray(
     dtype=np.float64
 )
 
+I_metadata["src_image_size"] = [I_source.shape[0],I_source.shape[1]]
 # Print pour valider que l'image est bien en format 0 à 255 et non 0 à 1
 # print(f"min(I_source) = {I_source.min():f}")
 # print(f"max(I_source) = {I_source.max():f}")
@@ -91,6 +95,8 @@ I_source = convert(I_source)
 LIGNES = 256
 COLONNES = 256
 
+I_metadata["enc_image_size"] = [LIGNES,COLONNES]
+
 # Appelle la fonction d'interpolation
 print("Dimensions initiales :", I_source.shape)
 I_reduced = reduce(I_source, LIGNES, COLONNES)
@@ -118,10 +124,8 @@ plt.axis("off")
 # ==========================================================================
 
 if Choix == 1:
-    # Paramètres d'entrée
-    ArgumentX = 0
     # Appelle la fonction de codage
-    I_encoded, I_metadata = QV_encode(I_reduced, ArgumentX)
+    I_encoded, I_metadata, bitPerPixel = QV_encode(I_reduced, bitPerPixelGoal=5, I_metadata=I_metadata)
 
 elif Choix == 2:
     # Paramètres d'entrée
@@ -154,21 +158,33 @@ else:
 #
 # La clé correspond au nombre de bits de la cellule :
 
-Data = [None] * 8
+Data = [None] * 16
 
 if Choix == 1:
-    Data[7] = I_encoded      # équivalent de Data{8}
-    Data[0] = I_metadata     # équivalent de Data{1}
+    #metadonnées
+    # 6x16 bit header + MxNx8 bit enc table 
+    Data[15] = I_metadata["src_image_size"].copy() #[image height, image width]
+    Data[15] += I_metadata["enc_image_size"] #[image height, image width]
+    Data[15] += [I_metadata["encodingTable"].shape[0],I_metadata["encodingTable"].shape[1]]#[table height, table width]
+    Data[7] = I_metadata["encodingTable"].flatten()
+    #données
+    #data indexes dépends de la taille du tableau
+    index = int(np.log2(I_metadata["encodingTable"].shape[0]))-1
+    if Data[index] is not None and Data[index].size > 0 :
+        Data[index] += I_encoded
+    else:
+        Data[index] = I_encoded
+
 
 elif Choix == 2:
     # Python indices:
     # Data[3] -> I_encoded  (256 * 256 * 4 bits)
     # Data[7] -> I_metadata (2 * 8 bits)
-    Data[3] = I_encoded      # équivalent de Data{4}
-    Data[7] = I_metadata     # équivalent de Data{8}
+    Data[4] = I_encoded      # équivalent de Data{4}
+    Data[8] = I_metadata     # équivalent de Data{8}
 
 else:
-    Data[7] = I_encoded      # équivalent de Data{8}
+    Data[8] = I_encoded      # équivalent de Data{8}
     Data[0] = I_metadata     # équivalent de Data{1}
 
 # Appel de la fonction de transmission
@@ -190,9 +206,29 @@ if Budget < 0:
 
 # Dans cette version, Data est conservé directement après la transmission.
 # On récupère donc les données reçues à partir de celui-ci.
-I_encoded_Rx = Data[3]
-I_metadata_Rx = Data[7]
 
+#le décodeur s'occupe directement de data
+#if Choix == 1:
+    # Appelle la fonction de décodage
+    
+
+if Choix == 2:
+    # Paramètres d'entrée
+    I_metadata_Rx = Data[8]
+    I_encoded_Rx = Data[4]
+
+
+elif Choix == 3:
+    raise NotImplementedError("Le décodeur QS n'est pas encore implémenté.")
+
+elif Choix == 4:
+    raise NotImplementedError("Le décodeur DCT n'est pas encore implémenté.")
+
+elif Choix == 5:
+    raise NotImplementedError("Le décodeur BTC n'est pas encore implémenté.")
+
+elif Choix == 6:
+    raise NotImplementedError("Le décodeur QA n'est pas encore implémenté.")
 
 # ==========================================================================
 #
@@ -201,14 +237,8 @@ I_metadata_Rx = Data[7]
 # ==========================================================================
 
 if Choix == 1:
-    # Paramètres d'entrée
-    ArgumentY = 0
     # Appelle la fonction de décodage
-    I_decoded = QV_decode(
-        I_encoded_Rx,
-        I_metadata_Rx,
-        ArgumentY
-    )
+    I_decoded, I_metadata_dec = QV_decode(Data)
 
 elif Choix == 2:
     # Paramètres d'entrée
