@@ -44,7 +44,7 @@ plt.close("all")
 # 5 = Quantification par troncature de blocs (BTC)
 # 6 = Quantification adaptative (QA)
 
-Choix = 5
+Choix = 2
 if Choix == 1: 
     QuantifChoisi = "Quantification vectorielle"
 elif Choix == 2:
@@ -314,7 +314,7 @@ if Budget > 0:
     print(f"Méthode : {QuantifChoisi}")
     print(f"Temps écoulé: {elapsed_time:.2f} s")
     print(f"PSNR: {psnr:.2f} dB")
-    print(f"Rate: {Rate:.2f} bits/pixel")
+    print(f"Rate: {Rate:.8f} bits/pixel")
     print("*****************************")
 
 
