@@ -7,26 +7,33 @@ def DPCM_encode(I_reduced, ArgumentX):
     # delta = 0.3352 # Dict size = 16, Gaussian distribution 2^4
     # delta = 0.217 # Dict size = 16, Uniform distribution 2^4
 
+    # Extracting input image dimensions and creation of empty arrays for DPCM
     L, C = I_reduced.shape
     I_encoded = np.zeros((L, C), dtype=np.uint8)
     I_reconstructed = np.zeros((L, C), dtype=float)
 
+    # Estimation of mean and standard deviation
     mean, std = DPCM_mean_and_std(I_reduced)
     # print("mean =", mean)
     # print("std =", std)
 
+    # Limits to the quantification of mean and standard deviation
     MEAN_MIN = -0.5
     MEAN_MAX = 0.5
     STD_MIN = 0
     STD_MAX = 64
 
+    # Quantization of mean and standard deviation
     mean_code = np.uint8(quantize_value(mean, MEAN_MIN, MEAN_MAX, 8))
     std_code = np.uint8(quantize_value(std, STD_MIN, STD_MAX, 8))
+    # Dequantization of mean and standard deviation
     mean_reconstructed = dequantize_value(mean_code, MEAN_MIN, MEAN_MAX, 8)
     std_reconstructed = dequantize_value(std_code, STD_MIN, STD_MAX, 8)
 
+    # Selection of the metadata for decoder
     I_metadata = (mean_code, std_code)
 
+    # Loop for the DPCM process
     for l in range(L):
         for c in range(C):
 
@@ -83,6 +90,7 @@ def DPCM_predictor(I_reconstructed, l, c):
 #############################################################################################
 
 def DPCM_mean_and_std(I_reduced):
+    # Function to approximate the values of the mean and standard deviation
     L, C = I_reduced.shape
     I_reconstructed = np.zeros((L, C), dtype=float)
     I_erreur = np.zeros((L, C), dtype=float)
@@ -93,14 +101,17 @@ def DPCM_mean_and_std(I_reduced):
             prediction = DPCM_predictor(I_reconstructed, l, c)
             # Prediction error
             I_erreur[l, c] = float(I_reduced[l,c]) - prediction
+            # Reconstruction (copy of the initial image)
             I_reconstructed[l, c] = I_reduced[l,c]
 
-    # plt.figure(4)
-    # plt.hist(I_erreur.flatten(), bins=200, density=True)
-    # plt.xlabel("Erreur de prédiction")
-    # plt.ylabel("Densité")
-    # plt.title("Distribution des erreurs DPCM")
+    # Display of the differences observed (to show its a Laplacian distribution)
+    plt.figure(200)
+    plt.hist(I_erreur.flatten(), bins=200, density=True)
+    plt.xlabel("Erreur de prédiction")
+    plt.ylabel("Densité")
+    plt.title("Distribution des erreurs DPCM")
 
+    # Extraction of mean and std based on our loop
     mean = np.average(I_erreur)
     std = np.std(I_erreur)
 
@@ -110,6 +121,7 @@ def DPCM_mean_and_std(I_reduced):
 
 def DPCM_quantificator(val_ini, delta):
 
+    # Static table for intervals of 4 bits (2^4 = 16 levels or 17 intervals)
     seuils_decision = np.array([
         -np.inf,
         -7 * delta,
@@ -130,14 +142,17 @@ def DPCM_quantificator(val_ini, delta):
         np.inf
     ])
 
+    # 16 levels so 16 possible codes (1 to 16)
     codes = np.arange(16)
 
+    # Finds index of interval (0 to 15)
     indice = np.digitize(
         val_ini,
         seuils_decision[1:-1],
         right=False
     )
 
+    # Converts back to the 1 to 16 list
     val_quant = codes[indice]
 
     return val_quant
@@ -146,6 +161,7 @@ def DPCM_quantificator(val_ini, delta):
 
 def DPCM_dequantificator(code, delta):
 
+    # Static table for reconstruction levels of 4 bits (2^4 = 16 levels)
     niveaux_reconstruction = np.array([
         -15 * delta / 2,
         -13 * delta / 2,
@@ -165,6 +181,7 @@ def DPCM_dequantificator(code, delta):
          15 * delta / 2
     ])
 
+    # Finds correct value in code based on index
     val_reconstruite = niveaux_reconstruction[code]
 
     return val_reconstruite
@@ -172,6 +189,7 @@ def DPCM_dequantificator(code, delta):
 #############################################################################################
 
 def quantize_value(value, minimum, maximum, n_bits):
+    # QSU for the mean and standard deviation
     n_levels = 2**n_bits
     delta = (maximum - minimum) / n_levels
 
@@ -183,6 +201,7 @@ def quantize_value(value, minimum, maximum, n_bits):
 #############################################################################################
 
 def dequantize_value(code, minimum, maximum, n_bits):
+    # QSU-1 for the mean and standard deviation
     n_levels = 2**n_bits
     delta = (maximum - minimum) / n_levels
 

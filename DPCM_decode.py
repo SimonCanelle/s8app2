@@ -9,10 +9,12 @@ def DPCM_decode(I_encoded, I_metadata, ArgumentY):
     L, C = I_encoded.shape
 
     I_decoded = np.zeros((L, C), dtype=float)
+    I_decoded_8bits = np.zeros((L, C), dtype=np.uint8)
 
     # Metadata
     mean_code, std_code = I_metadata
 
+    # Limits to the quantification of mean and standard deviation
     MEAN_MIN = -0.5
     MEAN_MAX = 0.5
     STD_MIN = 0
@@ -35,8 +37,9 @@ def DPCM_decode(I_encoded, I_metadata, ArgumentY):
 
             # Reconstruction
             I_decoded[l, c] = np.clip(prediction + erreur_reconstruite, 0, 255)
+            I_decoded_8bits[l, c] = int(round(I_decoded[l, c]))
 
-    return I_decoded
+    return I_decoded_8bits
 
 #############################################################################################
 
@@ -66,6 +69,7 @@ def DPCM_predictor(I_reconstructed, l, c):
 
 def DPCM_dequantificator(code, delta):
 
+    # Static table for reconstruction levels of 4 bits (2^4 = 16 levels)
     niveaux_reconstruction = np.array([
         -15 * delta / 2,
         -13 * delta / 2,
@@ -85,6 +89,7 @@ def DPCM_dequantificator(code, delta):
          15 * delta / 2
     ])
 
+    # Finds correct value in code based on index
     val_reconstruite = niveaux_reconstruction[code]
 
     return val_reconstruite
@@ -92,6 +97,7 @@ def DPCM_dequantificator(code, delta):
 #############################################################################################
 
 def dequantize_value(code, minimum, maximum, n_bits):
+    # QSU-1 for the mean and standard deviation
     n_levels = 2**n_bits
     delta = (maximum - minimum) / n_levels
 
