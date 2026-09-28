@@ -8,8 +8,8 @@ def DPCM_decode(I_encoded, I_metadata, ArgumentY):
 
     L, C = I_encoded.shape
 
-    I_decoded = np.zeros((L, C), dtype=float)
-    I_decoded_8bits = np.zeros((L, C), dtype=np.uint8)
+    I_decoded_float = np.zeros((L, C), dtype=float)
+    I_decoded = np.zeros((L, C), dtype=np.uint8)
 
     # Metadata
     mean_code, std_code = I_metadata
@@ -27,7 +27,7 @@ def DPCM_decode(I_encoded, I_metadata, ArgumentY):
         for c in range(C):
 
             # Prediction
-            prediction = DPCM_predictor(I_decoded, l, c)
+            prediction = DPCM_predictor(I_decoded_float, l, c)
 
             # Dequantization
             erreur_normalisee_reconstruite = DPCM_dequantificator(I_encoded[l, c], delta)
@@ -36,10 +36,10 @@ def DPCM_decode(I_encoded, I_metadata, ArgumentY):
             erreur_reconstruite = (erreur_normalisee_reconstruite * std + mean)
 
             # Reconstruction
-            I_decoded[l, c] = np.clip(prediction + erreur_reconstruite, 0, 255)
-            I_decoded_8bits[l, c] = int(round(I_decoded[l, c]))
+            I_decoded_float[l, c] = np.clip(prediction + erreur_reconstruite, 0, 255)
+            I_decoded[l, c] = int(round(I_decoded_float[l, c]))
 
-    return I_decoded_8bits
+    return I_decoded
 
 #############################################################################################
 
