@@ -52,9 +52,9 @@ I_metadata = dict()
 # Chargement de l'image source
 I_source = np.asarray(
     # Image.open("ressources/cman.tif"),
-    #Image.open("ressources/crest.bmp"),
+    Image.open("ressources/crest.bmp"),
     # Image.open("ressources/irm.tif"),
-    Image.open("ressources/lenna.bmp"),
+    #Image.open("ressources/lenna.bmp"),
     # Image.open("ressources/mandrill.tif"),
     dtype=np.float64
 )
@@ -187,7 +187,8 @@ elif Choix == 2:
 
 elif Choix == 5:
     Data[3] = I_encoded
-    Data[7] = np.concatenate((I_metadata["means"], I_metadata["stds"]))
+    Data[6] = I_metadata["stds"]
+    Data[7] = I_metadata["means"]
 
 else:
     Data[7] = I_encoded      # équivalent de Data{8}
@@ -262,7 +263,7 @@ elif Choix == 4:
     raise NotImplementedError("Le décodeur DCT n'est pas encore implémenté.")
 
 elif Choix == 5:
-    I_decoded, I_metadata_dec = BTC_decode(Data)
+    I_decoded = BTC_decode(Data)
 
 elif Choix == 6:
     raise NotImplementedError("Le décodeur QA n'est pas encore implémenté.")
