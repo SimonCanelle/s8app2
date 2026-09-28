@@ -71,7 +71,6 @@ def QV_encode(Img_reduced, I_metadata, pixelPerVec:int=10, bitPerIndex:int=10, c
            convTab[i] = np.linalg.norm(dist) #calcul la norme du vecteur de mouvement
         conv = np.mean(convTab)
         if conv < conversionGoal:#set arbitrairement
-           encTab = encTabOld #on garde l'ancienne table puisque les nouveau centroide n'on pas assez bouger et l'encodage présent est fait avec l'ancienne table
            break #la convergence est terminé
 
         #7. vérification de classe vide
