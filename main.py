@@ -9,7 +9,7 @@ from reduce import reduce
 from QV_encode import QV_encode
 from QV_decode import QV_decode
 from BTC_encode import BTC_encode
-#from BTC_decode import BTC_decode
+from BTC_decode import BTC_decode
 from DPCM_encode import DPCM_encode
 from DPCM_decode import DPCM_decode
 from transmit import transmit
@@ -52,9 +52,9 @@ I_metadata = dict()
 # Chargement de l'image source
 I_source = np.asarray(
     # Image.open("ressources/cman.tif"),
-    Image.open("ressources/crest.bmp"),
+    #Image.open("ressources/crest.bmp"),
     # Image.open("ressources/irm.tif"),
-    #Image.open("ressources/lenna.bmp"),
+    Image.open("ressources/lenna.bmp"),
     # Image.open("ressources/mandrill.tif"),
     dtype=np.float64
 )
@@ -185,6 +185,10 @@ elif Choix == 2:
     Data[3] = I_encoded      # équivalent de Data{4}
     Data[7] = I_metadata     # équivalent de Data{8}
 
+elif Choix == 5:
+    Data[3] = I_encoded
+    Data[7] = np.concatenate((I_metadata["means"], I_metadata["stds"]))
+
 else:
     Data[7] = I_encoded      # équivalent de Data{8}
     Data[0] = I_metadata     # équivalent de Data{1}
@@ -226,8 +230,8 @@ elif Choix == 3:
 elif Choix == 4:
     raise NotImplementedError("Le décodeur DCT n'est pas encore implémenté.")
 
-elif Choix == 5:
-    raise NotImplementedError("Le décodeur BTC n'est pas encore implémenté.")
+#elif Choix == 5:
+#    raise NotImplementedError("Le décodeur BTC n'est pas encore implémenté.")
 
 elif Choix == 6:
     raise NotImplementedError("Le décodeur QA n'est pas encore implémenté.")
@@ -258,7 +262,7 @@ elif Choix == 4:
     raise NotImplementedError("Le décodeur DCT n'est pas encore implémenté.")
 
 elif Choix == 5:
-    raise NotImplementedError("Le décodeur BTC n'est pas encore implémenté.")
+    I_decoded, I_metadata_dec = BTC_decode(Data)
 
 elif Choix == 6:
     raise NotImplementedError("Le décodeur QA n'est pas encore implémenté.")
@@ -306,8 +310,5 @@ if Budget > 0:
 # Affiche les figures
 plt.figure(4)
 plt.imshow((I_decoded-I_reduced) / 255.0, cmap="gray", vmin=0, vmax=1)
-
-plt.figure(5)
-plt.hist(I_encoded,bins=I_metadata["encodingTable"].shape[0])
 
 plt.show()
