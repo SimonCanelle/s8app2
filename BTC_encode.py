@@ -1,8 +1,8 @@
 import numpy as np
 
 def BTC_encode(Img_reduced, I_metadata):
-    blocH = 4
-    blocL = 4
+    blocH = 2
+    blocL = 2
     #1 creation des blocks
     #assume 256x256 en trée
     blockSize = (blocH*blocL)
@@ -17,16 +17,18 @@ def BTC_encode(Img_reduced, I_metadata):
     #2 calcul des statistiques
     means = np.mean(blocks, axis=1)
     stds = np.std(blocks, axis=1)
-
     
     #3 encoding
-    I_encoded = np.zeros((len(blocks),blockSize))
+    I_encoded = np.zeros(len(blocks))
     for i, bloc in enumerate(blocks):
-        I_encoded[i] = (bloc >= means[i])
+        boolBloc = (bloc >= means[i])
+        I_encoded[i] = int(''.join(['1' if b else '0' for b in boolBloc]), 2)
 
     #4 préparation des métadonnées
     I_metadata["means"] = means
     I_metadata["stds"] = stds
 
     return I_encoded, I_metadata
+
+
 

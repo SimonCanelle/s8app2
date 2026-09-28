@@ -1,10 +1,11 @@
 import numpy as np
 
 def BTC_decode(Data):
-    blocH = 4
-    blocL = 4
+    blocH = 2
+    blocL = 2
+    blockSize = (blocH*blocL)
     #I_metadata_dec = Data[7]
-    I_encoded = Data[3]
+    I_encoded = Data[3].astype(np.uint32)
 
     nBlocks = len(I_encoded)
 
@@ -14,14 +15,17 @@ def BTC_decode(Data):
     stds = Data[6]
     
     blocks = np.zeros((len(I_encoded),blocH,blocL))
-    for i, bloc in enumerate(I_encoded):
+    for i, blocEnc in enumerate(I_encoded):
+        bloc = np.unpackbits(np.array(blocEnc, dtype=np.uint8))[-blockSize:]
         q = (bloc==1).sum()
         pixelBloc = np.zeros(pixelPerBloc)
         for j in range(pixelPerBloc):            
             if bloc[j] == 1:
-                pixelBloc[j] = means[i]+stds[i]*np.sqrt((pixelPerBloc-q)/q)
+                pixelBloc[j] = int(np.round(means[i]+stds[i]*np.sqrt((pixelPerBloc-q)/q)))
             else:
-                pixelBloc[j] = means[i]-stds[i]*np.sqrt(q/(pixelPerBloc-q))
+                pixelBloc[j] = int(np.round(means[i]-stds[i]*np.sqrt(q/(pixelPerBloc-q))))
+        np.clip(pixelBloc, 0, 255, pixelBloc)
+
         blocks[i] = pixelBloc.reshape((blocH,blocL))
 
     I_decoded = np.zeros((256,256))

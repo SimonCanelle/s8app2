@@ -44,7 +44,15 @@ plt.close("all")
 # 5 = Quantification par troncature de blocs (BTC)
 # 6 = Quantification adaptative (QA)
 
-Choix = 1
+Choix = 5
+if Choix == 1: 
+    QuantifChoisi = "Quantification vectorielle"
+elif Choix == 2:
+    QuantifChoisi = "Quantification différentielle"
+elif Choix == 5: 
+    QuantifChoisi = "Quantification par troncature de blocs"
+else:
+    QuantifChoisi =""
 
 #préparation du distionnaire de métadonnées
 I_metadata = dict()
@@ -65,7 +73,7 @@ I_metadata["src_image_size"] = [I_source.shape[0],I_source.shape[1]]
 # print(f"max(I_source) = {I_source.max():f}")
 
 # Affichage de l'image source
-plt.figure(1)
+plt.figure("image source")
 if I_source.ndim == 2:
     # Pour image à 1 canal : Affichage en gris
     plt.imshow(I_source / 255.0, cmap="gray", vmin=0, vmax=1)
@@ -110,7 +118,7 @@ print("Dimensions finales :", I_reduced.shape)
 #
 # ==========================================================================
 
-plt.figure(2)
+plt.figure("Image reduite")
 
 if I_reduced.ndim == 2:
     plt.imshow(I_reduced / 255.0, cmap="gray", vmin=0, vmax=1)
@@ -275,7 +283,7 @@ elif Choix == 6:
 #
 # ==========================================================================
 
-plt.figure(3)
+plt.figure("image reconstruite")
 
 if I_decoded.ndim == 2:
     plt.imshow(I_decoded / 255.0, cmap="gray", vmin=0, vmax=1)
@@ -303,13 +311,11 @@ if Budget > 0:
     Rate = Budget / I_decoded.size
     # Affichage des performances
     print("********* Résultats *********")
+    print(f"Méthode : {QuantifChoisi}")
     print(f"Temps écoulé: {elapsed_time:.2f} s")
     print(f"PSNR: {psnr:.2f} dB")
     print(f"Rate: {Rate:.2f} bits/pixel")
     print("*****************************")
 
-# Affiche les figures
-plt.figure(4)
-plt.imshow((I_decoded-I_reduced) / 255.0, cmap="gray", vmin=0, vmax=1)
 
 plt.show()
