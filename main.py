@@ -44,7 +44,7 @@ plt.close("all")
 # 5 = Quantification par troncature de blocs (BTC)
 # 6 = Quantification adaptative (QA)
 
-Choix = 5
+Choix = 1
 
 #préparation du distionnaire de métadonnées
 I_metadata = dict()

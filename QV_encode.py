@@ -17,16 +17,7 @@ def QV_encode(Img_reduced, I_metadata, pixelPerVec:int=10, bitPerIndex:int=10, c
     imgL = len(Img_reduced[0])    
 
     #2. initialisation du tableau d'encodage
-    nIndex = int(2**bitPerIndex)
-    #encTab = np.zeros((nIndex,pixelPerVec))
-    #line = np.linspace(Img_reduced.min(),Img_reduced.max(),nIndex) #de min a max trouvé dans l'image
-    #counter = 0 #aide a pas avoir des vecteur pareil au départ
-    #for i in range(0,nIndex):
-    #    n = int(np.round(line[i]))
-    #    encTab[i] = np.full(pixelPerVec,n)
-    #    for j in range(1,pixelPerVec):
-    #        encTab[i][j] = (n + counter)%256
-    #        counter = (counter + 1) % 16
+    nIndex = int(2**bitPerIndex)    
     
     #3. vectorisation de l'image
     # j'ai décider de séparer l'image en vecteurs colonne pour simplifier 
@@ -44,8 +35,19 @@ def QV_encode(Img_reduced, I_metadata, pixelPerVec:int=10, bitPerIndex:int=10, c
             i+=1            
 
     uniqueVec = np.unique(imgVec, axis=0)
-    uniqueIndexes = np.random.choice(len(uniqueVec), nIndex, replace=False)
-    encTab = uniqueVec[uniqueIndexes].copy()
+    if (len(uniqueVec)>=nIndex) : 
+        uniqueIndexes = np.random.choice(len(uniqueVec), nIndex, replace=False)
+        encTab = uniqueVec[uniqueIndexes].copy()
+    else:
+        encTab = np.zeros((nIndex,pixelPerVec))
+        line = np.linspace(Img_reduced.min(),Img_reduced.max(),nIndex) #de min a max trouvé dans l'image
+        counter = 0 #aide a pas avoir des vecteur pareil au départ
+        for i in range(0,nIndex):
+            n = int(np.round(line[i]))
+            encTab[i] = np.full(pixelPerVec,n)
+            for j in range(1,pixelPerVec):
+                encTab[i][j] = (n + counter)%256
+                counter = (counter + 1) % 16
 
     #boucle LBG commence ici, pourra être changé
     for lbg in range(0, 25):
