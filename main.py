@@ -44,7 +44,7 @@ plt.close("all")
 # 5 = Quantification par troncature de blocs (BTC)
 # 6 = Quantification adaptative (QA)
 
-Choix = 5
+Choix = 1
 if Choix == 1: 
     QuantifChoisi = "Quantification vectorielle"
 elif Choix == 2:
