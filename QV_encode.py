@@ -11,7 +11,7 @@ def closestVector(imgVec, encodingTable):
     dist_sq = np.sum(diff**2, axis=1)
     return np.argmin(dist_sq)
 
-def QV_encode(Img_reduced, I_metadata, pixelPerVec:int=10, bitPerIndex:int=10, conversionGoal=0.01):
+def QV_encode(Img_reduced, I_metadata, pixelPerVec:int=10, bitPerIndex:int=10, conversionGoal=0.1):
     #1. vérification de la taille de l'image
     imgH = len(Img_reduced)
     imgL = len(Img_reduced[0])    
